@@ -20,26 +20,78 @@ impl fmt::Display for Cell {
 fn main() {
     let mut arr = [(); 9].map(|_| Cell::EMPTY);
 
+    let mut legal_moves = get_legal_moves(&arr);
+
+    let mut game_state = &Cell::EMPTY;
+
+    while legal_moves.len() > 0 && game_state == &Cell::EMPTY {
+        print_field(&arr);
+
+        make_move(&mut arr, legal_moves);
+        legal_moves = get_legal_moves(&arr);
+        game_state = get_game_state(&arr);
+    }
     print_field(&arr);
+    if game_state == &Cell::EMPTY {
+        println!("Its a draw!");
+    } else if game_state == &Cell::X {
+        println!("Player X won!");
+    } else {
+        println!("Player O won!");
+    }
+}
+
+fn get_game_state(field: &[Cell; 9]) -> &Cell {
+    for i in 0..3 {
+        if field[i] != Cell::EMPTY && field[i] == field[i + 3] && field[i + 3] == field[i + 6] {
+            return &field[i];
+        }
+        if field[3 * i] != Cell::EMPTY
+            && field[3 * i] == field[1 + 3 * i]
+            && field[i + 3] == field[2 + 3 * i]
+        {
+            return &field[3 * i];
+        }
+    }
+
+    if field[0] != Cell::EMPTY && field[0] == field[4] && field[4] == field[8] {
+        return &field[4];
+    }
+    if field[2] != Cell::EMPTY && field[2] == field[4] && field[4] == field[6] {
+        return &field[4];
+    }
+
+    return &Cell::EMPTY;
+}
+
+fn make_move(field: &mut [Cell; 9], legal_moves: Vec<usize>) {
+    let mut action = String::new();
     println!(
         "Where to make your next move? ({})",
-        get_legal_moves_string(&arr)
+        legal_moves_to_string(&legal_moves)
     );
-    let mut action = String::new();
-
     stdin()
         .read_line(&mut action)
         .expect("no correct number entered");
 
-    let position: usize = action.trim().parse().unwrap();
+    let position: usize = match action.trim().parse() {
+        Ok(v) => v,
+        Err(_) => 11,
+    };
 
-    arr[position] = Cell::X;
-
-    print_field(&arr);
+    if field.len() > position && field[position] == Cell::EMPTY {
+        field[position] = if legal_moves.len() % 2 == 1 {
+            Cell::X
+        } else {
+            Cell::O
+        };
+    } else {
+        make_move(field, legal_moves);
+    }
 }
 
-fn get_legal_moves_string(field: &[Cell; 9]) -> String {
-    let moves = get_legal_moves(&field)
+fn legal_moves_to_string(legal_moves: &Vec<usize>) -> String {
+    let moves = legal_moves
         .into_iter()
         .map(|i| i.to_string() + ",")
         .collect::<String>();
