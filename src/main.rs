@@ -23,21 +23,43 @@ fn main() {
     let mut legal_moves = get_legal_moves(&arr);
 
     let mut game_state = &Cell::EMPTY;
+    let mut anotherGame = true;
 
-    while legal_moves.len() > 0 && game_state == &Cell::EMPTY {
+    while anotherGame {
+        while legal_moves.len() > 0 && game_state == &Cell::EMPTY {
+            print_field(&arr);
+
+            make_move(&mut arr, legal_moves);
+            legal_moves = get_legal_moves(&arr);
+            game_state = get_game_state(&arr);
+        }
         print_field(&arr);
+        if game_state == &Cell::EMPTY {
+            println!("Its a draw!");
+        } else if game_state == &Cell::X {
+            println!("Player X won!");
+        } else {
+            println!("Player O won!");
+        }
+        let mut correctAnswer = false;
 
-        make_move(&mut arr, legal_moves);
-        legal_moves = get_legal_moves(&arr);
-        game_state = get_game_state(&arr);
-    }
-    print_field(&arr);
-    if game_state == &Cell::EMPTY {
-        println!("Its a draw!");
-    } else if game_state == &Cell::X {
-        println!("Player X won!");
-    } else {
-        println!("Player O won!");
+        while !correctAnswer {
+            let mut action = String::new();
+            println!("Do you want to play again? (y/n)");
+            stdin().read_line(&mut action).expect("");
+            let act = action.trim();
+            if act == "y" || act == "n" {
+                correctAnswer = true;
+                anotherGame = act == "y";
+            } else {
+                correctAnswer = false;
+            }
+        }
+        if anotherGame {
+            arr = [(); 9].map(|_| Cell::EMPTY);
+            legal_moves = get_legal_moves(&arr);
+            game_state = &Cell::EMPTY;
+        }
     }
 }
 
